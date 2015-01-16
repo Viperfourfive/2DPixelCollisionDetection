@@ -96,34 +96,6 @@ namespace _2DPixelCollisionDetection
             
             base.Draw(gameTime);
         }
-        public void DrawHUD()
-        {
-            if(reset == false)
-            {
-                _spriteBatch.Begin();
-                _spriteBatch.DrawString(font, "reset = false", new Vector2(0, 200), Color.White);
-                _spriteBatch.End();
-            }
-            else
-            {
-                _spriteBatch.Begin();
-                _spriteBatch.DrawString(font, "reset = true", new Vector2(0, 200), Color.White);
-                _spriteBatch.End();
-            }
-
-            if (win == false)
-            {
-                _spriteBatch.Begin();
-                _spriteBatch.DrawString(font, "win = false", new Vector2(0, 150), Color.White);
-                _spriteBatch.End();
-            }
-            else
-            {
-                _spriteBatch.Begin();
-                _spriteBatch.DrawString(font, "win = true", new Vector2(0, 150), Color.White);
-                _spriteBatch.End();
-            }
-        }
         public void DrawGame()
         {    
             _spriteBatch.Begin();
@@ -169,7 +141,7 @@ namespace _2DPixelCollisionDetection
                     if (colorA.A != 0 && colorB.A != 0)
                     {
                         _spriteBatch.Begin();
-                        _spriteBatch.DrawString(font, "YOU WIN!!", new Vector2(0, 500), Color.White);
+                        _spriteBatch.DrawString(font, "YOU WIN!!   Pres ESC to Exit", new Vector2(0, 500), Color.White);
                         _spriteBatch.End();
                         return true;
                     }
