@@ -56,6 +56,7 @@
     <MonoGameContentReference Include="Content\Content.mgcb" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\cursor.xnb" />
     <None Include="Content\Exit.xnb" />
     <None Include="Content\font.xnb" />
     <None Include="Content\greenBackground.xnb" />

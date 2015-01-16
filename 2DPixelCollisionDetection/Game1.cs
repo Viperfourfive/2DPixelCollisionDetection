@@ -12,9 +12,10 @@ namespace _2DPixelCollisionDetection
 
         public SpriteFont font;
         public Texture2D background, maze;
-        public Texture2D ball, exit;
-        public Vector2 _ballPosition;
+        public Texture2D ball, exit, cursor;
+        public Vector2 _ballPosition, _cursorPosition;
 
+        public bool win, reset = false;
         Rectangle rectangleA, rectangleB, rectangleC;
         Color[] dataA, dataB, dataC;
         
@@ -41,8 +42,7 @@ namespace _2DPixelCollisionDetection
             maze = Content.Load<Texture2D>("maze");
             ball = Content.Load<Texture2D>("orangeBall");
             exit = Content.Load<Texture2D>("Exit");
-
-
+            cursor = Content.Load<Texture2D>("cursor");
         }
         protected override void UnloadContent()
         {
@@ -51,37 +51,95 @@ namespace _2DPixelCollisionDetection
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
                 Exit();
+            }
 
-            var mouseState = Mouse.GetState();
-                if(mouseState.Position.X != 0)
+            MouseState mouseState = Mouse.GetState();
+            if(Mouse.GetState().LeftButton == ButtonState.Pressed)
+            {
+                if (win == false)
                 {
-                    _ballPosition.X = mouseState.Position.X;
-                    _ballPosition.Y = mouseState.Position.Y;
-                }             
-            
+                    _cursorPosition.X = mouseState.X;
+                    _cursorPosition.Y = mouseState.Y;
+                    _ballPosition.X = _cursorPosition.X - 50;
+                    _ballPosition.Y = _cursorPosition.Y - 50;
+                }
+                if(reset == true)
+                {
+                    _ballPosition.X = 50;
+                    _ballPosition.Y = 25;
+                }
+            }
+            else
+            {
+                _cursorPosition.X = mouseState.X;
+                _cursorPosition.Y = mouseState.Y;
+                _ballPosition.X = 50;
+                _ballPosition.Y = 25;
+            }
 
             base.Update(gameTime);
         }
         protected override void Draw(GameTime gameTime)
         {
-            DrawGame();
-            checkCollisionExit();
-            checkCollisionMaze();
-
+            if(win == false)
+            {
+                DrawGame();
+                win = checkCollisionExit(win);
+                reset = checkCollisionMaze(reset);
+            }      
+            if(reset == true)
+            {
+                DrawGame();
+            }
+            
             base.Draw(gameTime);
         }
-        public void DrawGame()
+        public void DrawHUD()
         {
+            if(reset == false)
+            {
+                _spriteBatch.Begin();
+                _spriteBatch.DrawString(font, "reset = false", new Vector2(0, 200), Color.White);
+                _spriteBatch.End();
+            }
+            else
+            {
+                _spriteBatch.Begin();
+                _spriteBatch.DrawString(font, "reset = true", new Vector2(0, 200), Color.White);
+                _spriteBatch.End();
+            }
+
+            if (win == false)
+            {
+                _spriteBatch.Begin();
+                _spriteBatch.DrawString(font, "win = false", new Vector2(0, 150), Color.White);
+                _spriteBatch.End();
+            }
+            else
+            {
+                _spriteBatch.Begin();
+                _spriteBatch.DrawString(font, "win = true", new Vector2(0, 150), Color.White);
+                _spriteBatch.End();
+            }
+        }
+        public void DrawGame()
+        {    
             _spriteBatch.Begin();
             _spriteBatch.Draw(background, new Vector2(0, 0), Color.White);
             _spriteBatch.Draw(maze, new Vector2(0, 0), Color.White);
             _spriteBatch.Draw(exit, new Vector2(650, 25), Color.White);
+            _spriteBatch.DrawString(font, "Click and drag the ball to the exit.", new Vector2(0, 300), Color.White);
+            if (reset == true)
+            {
+                _spriteBatch.Draw(ball, new Vector2(50, 25), Color.White);
+            }
             _spriteBatch.Draw(ball, new Vector2(_ballPosition.X, _ballPosition.Y), Color.White);
+            _spriteBatch.Draw(cursor, new Vector2(_cursorPosition.X, _cursorPosition.Y), Color.White);
             _spriteBatch.End();
         }
-
-        public bool checkCollisionExit()
+        public bool checkCollisionExit(bool win)
         {
             rectangleA = new Rectangle((int)_ballPosition.X, (int)_ballPosition.Y, ball.Height, ball.Width);
             rectangleB = new Rectangle(650, 25, exit.Height, exit.Width);
@@ -95,7 +153,6 @@ namespace _2DPixelCollisionDetection
             int exitBottom = Math.Min(rectangleA.Bottom, rectangleB.Bottom);
             int exitLeft = Math.Max(rectangleA.Left, rectangleB.Left);
             int exitRight = Math.Min(rectangleA.Right, rectangleB.Right);
-
 
             // Check every point within the intersection bounds
             for (int y = exitTop; y < exitBottom; y++)
@@ -112,19 +169,16 @@ namespace _2DPixelCollisionDetection
                     if (colorA.A != 0 && colorB.A != 0)
                     {
                         _spriteBatch.Begin();
-                        _spriteBatch.DrawString(font, "EXIT COLLISIONS DETECTED", new Vector2(0, 500), Color.White);
+                        _spriteBatch.DrawString(font, "YOU WIN!!", new Vector2(0, 500), Color.White);
                         _spriteBatch.End();
                         return true;
                     }
                 }
             }
             // No intersection found
-            _spriteBatch.Begin();
-            _spriteBatch.DrawString(font, "NO EXIT COLLISIONS DETECTED", new Vector2(0, 500), Color.White);
-            _spriteBatch.End();
             return false;
         }
-        public bool checkCollisionMaze()
+        public bool checkCollisionMaze(bool reset)
         {
             rectangleA = new Rectangle((int)_ballPosition.X, (int)_ballPosition.Y, ball.Height, ball.Width);
             rectangleC = new Rectangle(0, 0, maze.Height, maze.Width);
@@ -154,17 +208,15 @@ namespace _2DPixelCollisionDetection
                     // If both pixels are not completely transparent,
                     if (colorA.A != 0 && colorC.A != 0)
                     {
+                        //intersection found
                         _spriteBatch.Begin();
-                        _spriteBatch.DrawString(font, "MAZE COLLISIONS DETECTED", new Vector2(0, 550), Color.White);
+                        _spriteBatch.DrawString(font, "MAZE COLLISIONS!!", new Vector2(0, 550), Color.White);
                         _spriteBatch.End();
                         return true;
                     }
                 }
             }
             // No intersection found
-            _spriteBatch.Begin();
-            _spriteBatch.DrawString(font, "NO MAZE COLLISIONS DETECTED", new Vector2(0, 550), Color.White);
-            _spriteBatch.End();
             return false;
         }
     }
